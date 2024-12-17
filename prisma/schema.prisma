@@ -1,114 +1,113 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-}
-
+// Specify PostgreSQL as the provider
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
 
-// 1. User Model
+// User Model
 model User {
   id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100)
-  email     String   @unique @db.VarChar(150)
-  password  String   @db.VarChar(255)
+  name      String   @db.Text
+  email     String   @unique
+  password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  groups    GroupMember[]
-  carts     Cart[]
-  payments  Payment[]
+  groups        GroupMember[]
+  carts         Cart[]
+  payments      Payment[]
+  notifications Notification[]
+  Group         Group[]
 }
 
-// 2. Group Model
+// Group Model
 model Group {
-  id          Int           @id @default(autoincrement())
-  name        String        @db.VarChar(100)
-  createdById Int           // Creator user ID
-  createdAt   DateTime      @default(now())
+  id          Int      @id @default(autoincrement())
+  name        String
+  createdById Int
+  createdAt   DateTime @default(now())
 
-  members     GroupMember[]
-  carts       Cart[]
-  createdBy   User          @relation(fields: [createdById], references: [id])
+  createdBy User          @relation(fields: [createdById], references: [id])
+  members   GroupMember[]
+  carts     Cart[]
 }
 
-// 3. GroupMember (Many-to-Many Relation)
+// GroupMember Model (Many-to-Many Relation Table)
 model GroupMember {
-  id      Int    @id @default(autoincrement())
+  id      Int @id @default(autoincrement())
   userId  Int
   groupId Int
 
-  user    User   @relation(fields: [userId], references: [id])
-  group   Group  @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
 
   @@unique([userId, groupId])
 }
 
-// 4. Product Model
+// Product Model
 model Product {
   id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(200)
-  description String?  @db.Text
+  name        String
+  description String?
   price       Float
   stock       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  carts       CartItem[]
+  carts CartItem[]
 }
 
-// 5. Cart Model
+// Cart Model
 model Cart {
-  id        Int           @id @default(autoincrement())
-  groupId   Int           // Group associated with this cart
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id        Int      @id @default(autoincrement())
+  groupId   Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  group     Group         @relation(fields: [groupId], references: [id])
-  items     CartItem[]
+  group   Group      @relation(fields: [groupId], references: [id])
+  user    User       @relation(fields: [userId], references: [id])
+  items   CartItem[]
+  Payment Payment[]
 }
 
-// 6. CartItem Model (Products in a Cart)
+// CartItem Model
 model CartItem {
-  id        Int      @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   cartId    Int
   productId Int
-  quantity  Int      @default(1)
+  quantity  Int @default(1)
 
-  cart      Cart     @relation(fields: [cartId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  cart    Cart    @relation(fields: [cartId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 
   @@unique([cartId, productId])
 }
 
-// 7. Payment Model
+// Payment Model
 model Payment {
   id        Int      @id @default(autoincrement())
-  userId    Int      // Paying user
-  cartId    Int      // Cart being paid for
+  userId    Int
+  cartId    Int
   amount    Float
-  status    String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  status    String   @default("PENDING")
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
-  cart      Cart     @relation(fields: [cartId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  cart Cart @relation(fields: [cartId], references: [id])
 }
 
-// 8. Notification Model
+// Notification Model
 model Notification {
   id        Int      @id @default(autoincrement())
-  userId    Int      // Recipient user
-  message   String   @db.VarChar(255)
+  userId    Int
+  message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
