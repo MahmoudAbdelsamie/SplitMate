@@ -1,4 +1,4 @@
-const { registerController, loginController, getUserProfile, editUserProfile } = require('../controllers/authController');
+const { registerController, loginController, getUserProfile, editUserProfile, deleteUser } = require('../controllers/authController');
 
 const router = require('express').Router();
 
@@ -16,6 +16,7 @@ router
     .route('/users/:id')
     .get(getUserProfile)
     .patch(editUserProfile)
+    .delete(deleteUser)
 
 
 module.exports = router;

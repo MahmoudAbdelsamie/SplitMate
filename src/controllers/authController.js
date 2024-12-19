@@ -101,11 +101,11 @@ const editUserProfile = async (req, res) => {
     } catch(err) {
         if(err.code === 'P2025'){
             return res.status(404).json({
-                error: 'User not Found'
+                error: 'User not Found!'
             })
         }
         return res.status(500).json({
-            message: 'Internal Server Error',
+            message: 'Internal Server Error!',
             error: err.message
         })
     }
@@ -113,12 +113,33 @@ const editUserProfile = async (req, res) => {
 
 
 
+// Delete account --> DELETE /users/:id
+const deleteUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.user.delete({ where: { id: parseInt(id) } });
+        res.json({
+            message: 'User Account Deleted Successfully'
+        })
+    } catch(err) {
+        if(err.code === "P2025") {
+            return res.status(404).json({
+                error: 'User Not Found!'
+            })
+        }
+        return res.status(500).json({
+            message: 'Internal Server Error!',
+            error: err.code
+        })
+    }
+}
+
 
 module.exports = {
     registerController,
     loginController,
     getUserProfile,
     editUserProfile,
-
+    deleteUser,
     
 }
