@@ -59,11 +59,33 @@ const loginController = async (req, res) => {
 
 
 
+// User Profile Routes
+
+// GET /users/:id - View profile
+const getUserProfile = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+        if(!user) {
+            return res.status(404).json({
+                message: "User Not Found!!"
+            })
+        }
+        res.json(user)
+    } catch(err) {
+        return res.status(500).json({
+            message: 'Internal Server Error!',
+            error: err.message
+        })
+    }
+}
 
 
 
 module.exports = {
     registerController,
     loginController,
+    getUserProfile,
+
     
 }

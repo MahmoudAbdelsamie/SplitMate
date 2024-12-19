@@ -1,4 +1,4 @@
-const { registerController, loginController } = require('../controllers/authController');
+const { registerController, loginController, getUserProfile } = require('../controllers/authController');
 
 const router = require('express').Router();
 
@@ -11,5 +11,10 @@ router
 router
     .route('/auth/login') 
     .post(loginController)
+
+router
+    .route('/user/:id')
+    .get(getUserProfile)
+
 
 module.exports = router;
