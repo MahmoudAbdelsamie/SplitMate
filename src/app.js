@@ -2,9 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const prisma = require('./config/database')
+const prisma = require('./config/database');
 
 const authRouter = require('./routes/authRoutes');
+const groupRouter = require('./routes/groupRoutes')
 
 const app = express();
 
@@ -15,14 +16,16 @@ app.use(bodyParser.json());
 
 
 // default endpoint...
-
 app.get('/api/v1', (req, res) => {
     res.json({
         message: "Welcome to SplitMate API!!"
     });
 });
 
+
+// ALL Routes
 app.use('/api/v1', authRouter)
+app.use('/api/v1', groupRouter)
 
 // DB Connection test...
 
