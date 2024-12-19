@@ -1,4 +1,4 @@
-const { registerController, loginController, getUserProfile } = require('../controllers/authController');
+const { registerController, loginController, getUserProfile, editUserProfile } = require('../controllers/authController');
 
 const router = require('express').Router();
 
@@ -13,8 +13,9 @@ router
     .post(loginController)
 
 router
-    .route('/user/:id')
+    .route('/users/:id')
     .get(getUserProfile)
+    .patch(editUserProfile)
 
 
 module.exports = router;

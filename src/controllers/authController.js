@@ -3,6 +3,9 @@ const prisma = require('../config/database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
+
+// Register --> POST /auth/register
 const registerController = async (req, res) => {
     const { name, email, password } = req.body;
     try {
@@ -34,6 +37,7 @@ const registerController = async (req, res) => {
 };
 
 
+// Login -->  POST /auth/login
 const loginController = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -61,7 +65,7 @@ const loginController = async (req, res) => {
 
 // User Profile Routes
 
-// GET /users/:id - View profile
+// View profile --> GET /users/:id
 const getUserProfile = async (req, res) => {
     const { id } = req.params;
     try {
@@ -80,12 +84,41 @@ const getUserProfile = async (req, res) => {
     }
 }
 
+// Edit Profile --> PATCH /users/:id
+
+const editUserProfile = async (req, res) => {
+    const { id } = req.params;
+    const { name, email } = req.body;
+    try {
+        const user = await prisma.user.update({
+            where: { id: parseInt(id) },
+            data: { name, email }
+        })
+        res.json({
+            message: 'User Profile Updated Successfully',
+            user
+        })
+    } catch(err) {
+        if(err.code === 'P2025'){
+            return res.status(404).json({
+                error: 'User not Found'
+            })
+        }
+        return res.status(500).json({
+            message: 'Internal Server Error',
+            error: err.message
+        })
+    }
+}
+
+
 
 
 module.exports = {
     registerController,
     loginController,
     getUserProfile,
+    editUserProfile,
 
     
 }
