@@ -24,7 +24,6 @@ model User {
   Group         Group[]
 }
 
-// Group Model
 model Group {
   id          Int      @id @default(autoincrement())
   name        String
@@ -33,7 +32,7 @@ model Group {
 
   createdBy User          @relation(fields: [createdById], references: [id])
   members   GroupMember[]
-  carts     Cart[]
+  Cart      Cart[]
 }
 
 // GroupMember Model (Many-to-Many Relation Table)
