@@ -53,11 +53,38 @@ const createGroup = async (req, res) => {
 
 
 
+// Adding members to a group --> POST /groups/:id/members
+const addGroupMembers = async (req, res) => {
+    const { id } = req.params; 
+    const { userIds } = req.body; 
+    try {
+        const group = await prisma.group.findUnique({ where: { id: parseInt(id) } });
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const users = await prisma.user.findMany({ where: { id: { in: userIds } } });
+        if (users.length !== userIds.length) {
+            return res.status(400).json({ error: 'Some users do not exist' });
+        }
+
+        const groupMembers = await prisma.groupMember.createMany({
+            data: userIds.map((userId) => ({ groupId: parseInt(id), userId })),
+            skipDuplicates: true, // Avoid adding duplicate members
+        });
+
+        res.status(201).json({ message: 'Members added successfully', groupMembers });
+    } catch (err) {
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+};
+
+
 
 
 
 module.exports = {
     createGroup,
-
+    addGroupMembers,
 
 }
