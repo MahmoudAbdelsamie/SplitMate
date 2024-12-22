@@ -1,15 +1,11 @@
-const {
-  createGroup,
-  addGroupMembers,
-  removeGroupMember,
-} = require("../controllers/groupController");
+const express = require("express");
+const { createGroup, addGroupMembers, removeGroupMember } = require("../controllers/groupController");
 
-const router = require("express").Router();
+const router = express.Router();
 
-router.route("/groups").post(createGroup);
-
-router.route("/groups/:id/members").post(addGroupMembers);
-
-router.route("/groups/:id/members/:memberId").delete(removeGroupMember);
+// Define routes
+router.post("/groups", createGroup);
+router.post("/groups/:id/members", addGroupMembers);
+router.delete("/groups/:id/members/:memberId", removeGroupMember);
 
 module.exports = router;
