@@ -44,7 +44,7 @@ model GroupMember {
   user  User  @relation(fields: [userId], references: [id])
   group Group @relation(fields: [groupId], references: [id])
 
-  @@unique([userId, groupId])
+  @@unique([groupId, userId]) // Define the unique compound constraint
 }
 
 // Product Model
