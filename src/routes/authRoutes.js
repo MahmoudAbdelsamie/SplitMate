@@ -1,22 +1,21 @@
-const { registerController, loginController, getUserProfile, editUserProfile, deleteUser } = require('../controllers/authController');
+const express = require('express');
+const {
+  registerController,
+  loginController,
+  getUserProfile,
+  editUserProfile,
+  deleteUser,
+} = require('../controllers/authController');
 
-const router = require('express').Router();
+const router = express.Router();
 
-
+// Define routes
+router.post('/auth/register', registerController);
+router.post('/auth/login', loginController);
 router
-    .route('/auth/register')
-    .post(registerController)
-
-
-router
-    .route('/auth/login') 
-    .post(loginController)
-
-router
-    .route('/users/:id')
-    .get(getUserProfile)
-    .patch(editUserProfile)
-    .delete(deleteUser)
-
+  .route('/users/:id')
+  .get(getUserProfile)
+  .patch(editUserProfile)
+  .delete(deleteUser);
 
 module.exports = router;
