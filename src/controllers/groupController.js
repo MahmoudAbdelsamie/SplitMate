@@ -1,55 +1,52 @@
 require("dotenv").config();
 const prisma = require("../config/database");
 
+// Helper function to find users by IDs
+const findUsersByIds = async (userIds) => {
+  return prisma.user.findMany({
+    where: {
+      id: { in: userIds },
+    },
+  });
+};
+
+// Helper function to find a group by ID
+const findGroupById = async (id) => {
+  return prisma.group.findUnique({
+    where: { id: parseInt(id) },
+  });
+};
+
 // Create a new group --> POST /groups
 const createGroup = async (req, res) => {
   const { name, userIds, createdById } = req.body;
 
   try {
-    const creator = await prisma.user.findUnique({
-      where: { id: createdById },
-    });
+    const [creator, users] = await Promise.all([
+      prisma.user.findUnique({ where: { id: createdById } }),
+      findUsersByIds(userIds),
+    ]);
+
     if (!creator) {
-      return res.status(400).json({
-        error: "Creator user does not exist",
-      });
+      return res.status(400).json({ error: "Creator user does not exist" });
     }
 
-    const users = await prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-    });
     if (users.length !== userIds.length) {
-      return res.status(400).json({
-        error: "Some users do not exist",
-      });
+      return res.status(400).json({ error: "Some users do not exist" });
     }
 
     const group = await prisma.group.create({
       data: {
         name,
-        createdById, // Assign the creator
-        members: {
-          create: userIds.map((userId) => ({ userId })),
-        },
+        createdById,
+        members: { create: userIds.map((userId) => ({ userId })) },
       },
-      include: {
-        members: true,
-      },
+      include: { members: true },
     });
 
-    res.status(201).json({
-      message: "Group created successfully",
-      group,
-    });
+    res.status(201).json({ message: "Group created successfully", group });
   } catch (err) {
-    res.status(500).json({
-      message: "Internal Server Error!",
-      error: err.message,
-    });
+    res.status(500).json({ message: "Internal Server Error!", error: err.message });
   }
 };
 
@@ -57,48 +54,43 @@ const createGroup = async (req, res) => {
 const addGroupMembers = async (req, res) => {
   const { id } = req.params;
   const { userIds } = req.body;
+
   try {
-    const group = await prisma.group.findUnique({
-      where: { id: parseInt(id) },
-    });
+    const [group, users] = await Promise.all([
+      findGroupById(id),
+      findUsersByIds(userIds),
+    ]);
+
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
 
-    const users = await prisma.user.findMany({
-      where: { id: { in: userIds } },
-    });
     if (users.length !== userIds.length) {
       return res.status(400).json({ error: "Some users do not exist" });
     }
 
     const groupMembers = await prisma.groupMember.createMany({
       data: userIds.map((userId) => ({ groupId: parseInt(id), userId })),
-      skipDuplicates: true, // Avoid adding duplicate members
+      skipDuplicates: true,
     });
 
-    res
-      .status(201)
-      .json({ message: "Members added successfully", groupMembers });
+    res.status(201).json({ message: "Members added successfully", groupMembers });
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Something went wrong", details: err.message });
+    res.status(500).json({ error: "Something went wrong", details: err.message });
   }
 };
 
 // Remove a member from a group --> DELETE /groups/:id/members/:memberId
 const removeGroupMember = async (req, res) => {
   const { id, memberId } = req.params;
+
   try {
-    const group = await prisma.group.findUnique({
-      where: { id: parseInt(id) },
-    });
+    const group = await findGroupById(id);
+
     if (!group) {
-      return res.status(404).json({
-        error: "Group not found",
-      });
+      return res.status(404).json({ error: "Group not found" });
     }
+
     const deletedMember = await prisma.groupMember.delete({
       where: {
         groupId_userId: {
@@ -107,20 +99,13 @@ const removeGroupMember = async (req, res) => {
         },
       },
     });
-    res.json({
-      message: "Member removed successfully",
-      deletedMember,
-    });
+
+    res.json({ message: "Member removed successfully", deletedMember });
   } catch (err) {
     if (err.code === "P2025") {
-      return res.status(404).json({
-        error: "Member not found in the group",
-      });
+      return res.status(404).json({ error: "Member not found in the group" });
     }
-    res.status(500).json({
-      message: "Internal Server Error",
-      error: err.message,
-    });
+    res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 };
 
