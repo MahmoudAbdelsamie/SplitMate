@@ -5,7 +5,8 @@ const cors = require('cors');
 const prisma = require('./config/database');
 
 const authRouter = require('./routes/authRoutes');
-const groupRouter = require('./routes/groupRoutes')
+const groupRouter = require('./routes/groupRoutes');
+const cartRouter = require('./routes/cartRoutes');
 
 const app = express();
 
@@ -19,13 +20,14 @@ app.use(bodyParser.json());
 app.get('/api/v1', (req, res) => {
     res.json({
         message: "Welcome to SplitMate API!!"
-    });
+    }); 
 });
 
 
 // ALL Routes
-app.use('/api/v1', authRouter)
-app.use('/api/v1', groupRouter)
+app.use('/api/v1', authRouter);
+app.use('/api/v1', groupRouter);
+app.use('/api/v1', cartRouter)
 
 // DB Connection test...
 
