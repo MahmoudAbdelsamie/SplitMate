@@ -1,4 +1,5 @@
 require('dotenv').config();
+const prisma = require('../config/database');
 const { group, cart, product, cartItem } = require('../config/database');
 
 // Create a new cart --> POST /carts
@@ -72,7 +73,64 @@ const addItemToCart = async (req, res) => {
     }
 };
 
+// Remove Cart Item --> '/carts/:id/remove-item'
+const removeCartItem = async (req, res) => {
+    const { id } = req.params;
+    const { productId, quantity } = req.body;
+    try {
+        const cart = await prisma.cart.findUnique({ where: { id: parseInt(id) } });
+        if(!cart) {
+            return res.status(404).json({ error: 'Cart Not Found'});
+        }
+
+        const cartItem = await prisma.cartItem.findUnique({
+            where: {
+                cartId_productId: {
+                    cartId: parseInt(id),
+                    productId,
+                },
+            },
+        });
+        if(!cartItem) {
+            return res.status(404).json({ error: 'Item not found in the cart'})
+        }
+        if(cartItem.quantity > quantity) {
+            const updatedCartItem = await prisma.cartItem.update({
+                where: {
+                    cartId_productId: {
+                        cartId: parseInt(id),
+                        productId,
+                    },
+                },
+                data: {
+                    quantity: { decrement: quantity },
+                },
+            });
+            res.json({ message: 'Item quantity updated', updatedCartItem });
+        } else {
+            await prisma.cartItem.delete({
+                where: {
+                    cartId_productId: {
+                        cartId: parseInt(id),
+                        productId,
+                    },
+                },
+            });
+            res.json({ message: 'Item removed from cart'});
+        }
+    } catch(err){
+        res.status(500).json({
+            message: 'Internal Server Error',
+            error: err.message
+        })
+    }
+}
+
+
+
 module.exports = {
     createCart,
     addItemToCart,
+    removeCartItem,
+
 };
