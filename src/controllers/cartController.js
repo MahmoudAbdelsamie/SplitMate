@@ -127,10 +127,62 @@ const removeCartItem = async (req, res) => {
 }
 
 
+// Remove cart  --> DELETE /carts/:id
+
+const removeCart = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.cart.delete({
+            where: {
+                id: parseInt(id)
+            }
+        });
+        return res.json({
+            message: 'Cart Deleted Successfully!'
+        })
+    } catch(err) {
+        if(err.code === 'P2025') {
+            return res.status(404).json({
+                error: 'Cart Not Found!'
+            })
+        }
+        return res.status(500).json({
+            message: 'Internal Server Error',
+            error: err.message
+        })
+    }
+
+}
+
+
+// DELETE /carts/:id - Clear a cart
+// app.delete('/carts/:id', async (req, res) => {
+//     const { id } = req.params; // Cart ID
+//     try {
+//         // Validate that the cart exists
+//         const cart = await prisma.cart.findUnique({ where: { id: parseInt(id) } });
+//         if (!cart) {
+//             return res.status(404).json({ error: 'Cart not found' });
+//         }
+
+//         // Delete all items in the cart
+//         await prisma.cartItem.deleteMany({ where: { cartId: parseInt(id) } });
+
+//         // Delete the cart
+//         await prisma.cart.delete({ where: { id: parseInt(id) } });
+
+//         res.json({ message: 'Cart cleared successfully' });
+//     } catch (err) {
+//         res.status(500).json({ error: 'Something went wrong', details: err.message });
+//     }
+// });
+
 
 module.exports = {
     createCart,
     addItemToCart,
     removeCartItem,
+    removeCart,
+    
 
 };
